@@ -1,23 +1,7 @@
-// Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
-import {
-  getFirestore,
-  collection,
-  doc,
-  setDoc,
-  getDocs,
-  onSnapshot,
-  updateDoc,
-  arrayUnion
-} from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCLaGO8p3BKySI6p8GDab7C98SmFQ9BtRY",
   authDomain: "chat-app-123f9.firebaseapp.com",
@@ -27,96 +11,74 @@ const firebaseConfig = {
   appId: "1:331187252178:web:9af555cb3c234bf680b60b"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Helper: validate username
-function isValidUsername(username) {
-  return /^[a-zA-Z0-9_]+$/.test(username);
-}
+function isValidUsername(username) { return /^[a-zA-Z0-9_]+$/.test(username); }
 
-// ===== REGISTER =====
+// REGISTER
 window.register = async function () {
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
-
   if (!username || !password) return alert("Enter username and password");
   if (!isValidUsername(username)) return alert("Username can only contain letters, numbers, underscores");
-
   const email = username + "@chatapp.com";
 
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const uid = userCredential.user.uid;
-
-    // Save user info in Firestore
-    await setDoc(doc(db, "users", uid), { username, uid });
-
+    await setDoc(doc(db, "users", userCredential.user.uid), { username, uid: userCredential.user.uid });
     alert("Account Created ✅");
     window.location.href = "index.html";
-  } catch (error) {
-    alert(error.message);
-  }
+  } catch (error) { alert(error.message); }
 };
 
-// ===== LOGIN =====
+// LOGIN
 window.login = async function () {
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
-
   if (!username || !password) return alert("Enter username and password");
   if (!isValidUsername(username)) return alert("Username can only contain letters, numbers, underscores");
-
   const email = username + "@chatapp.com";
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
     window.location.href = "chat.html";
-  } catch (error) {
-    alert(error.message);
-  }
+  } catch (error) { alert(error.message); }
 };
 
-// ===== LOGOUT =====
+// LOGOUT
 window.logout = function() {
-  signOut(auth).then(() => {
-    window.location.href = "index.html";
-  });
+  signOut(auth).then(() => { window.location.href = "index.html"; });
 };
 
-// ===== SEARCH USERS =====
+// SEARCH USERS
 window.searchUser = async function () {
   if (!auth.currentUser) return alert("Not logged in");
-
   const searchInput = document.getElementById("searchUser").value.trim().toLowerCase();
   const userList = document.getElementById("userList");
-  userList.innerHTML = ""; // clear previous results
-
+  userList.innerHTML = "";
   if (!searchInput) return;
 
   const querySnapshot = await getDocs(collection(db, "users"));
-  querySnapshot.forEach(doc => {
-    const user = doc.data();
+  querySnapshot.forEach(docSnap => {
+    const user = docSnap.data();
     if (user.username.toLowerCase().includes(searchInput) && user.uid !== auth.currentUser.uid) {
       const li = document.createElement("li");
       li.textContent = user.username;
-      li.style.cursor = "pointer";
       li.onclick = () => openChat(user.uid, user.username);
       userList.appendChild(li);
     }
   });
 };
 
-// ===== OPEN CHAT =====
+// CHAT
 window.currentChatUid = null;
 window.currentChatId = null;
 window.unsubscribe = null;
 
 function openChat(otherUid, otherUsername) {
   if (!auth.currentUser) return alert("Not logged in");
-
   window.currentChatUid = otherUid;
   window.currentChatId = [auth.currentUser.uid, otherUid].sort().join("_");
 
@@ -124,13 +86,13 @@ function openChat(otherUid, otherUsername) {
   chatBox.innerHTML = `
     <h3>Chat with ${otherUsername}</h3>
     <div id="messages" style="border:1px solid #ccc;height:200px;overflow-y:auto;margin-bottom:10px;"></div>
-    <input type="text" id="msgInput" placeholder="Type message">
-    <button onclick="sendMessage()">Send</button>
+    <div class="chat-input-row">
+      <input type="text" id="msgInput" placeholder="Type message">
+      <button id="sendBtn">Send</button>
+    </div>
   `;
 
   const chatDocRef = doc(db, "chats", window.currentChatId);
-
-  // Real-time listener
   if (window.unsubscribe) window.unsubscribe();
   window.unsubscribe = onSnapshot(chatDocRef, (docSnap) => {
     const messagesDiv = document.getElementById("messages");
@@ -139,29 +101,38 @@ function openChat(otherUid, otherUsername) {
       const msgs = docSnap.data().messages || [];
       msgs.sort((a,b)=>a.timestamp-b.timestamp);
       msgs.forEach(m => {
-        const p = document.createElement("p");
-        p.textContent = `${m.sender === auth.currentUser.uid ? "You" : otherUsername}: ${m.text}`;
-        messagesDiv.appendChild(p);
+        const div = document.createElement("div");
+        div.classList.add("message");
+        const bubble = document.createElement("div");
+        bubble.classList.add("bubble");
+        if (m.sender === auth.currentUser.uid) {
+          bubble.classList.add("you");
+          bubble.innerHTML = `<span class="sender">You</span>${m.text}<span class="time">${new Date(m.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>`;
+        } else {
+          bubble.classList.add("other");
+          bubble.innerHTML = `<span class="sender">${otherUsername}</span>${m.text}<span class="time">${new Date(m.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>`;
+        }
+        div.appendChild(bubble);
+        messagesDiv.appendChild(div);
       });
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
   });
+
+  // Send message
+  const inputField = document.getElementById("msgInput");
+  inputField.addEventListener("keypress", e => { if (e.key === "Enter") { e.preventDefault(); sendMessage(); } });
+  document.getElementById("sendBtn").onclick = sendMessage;
 }
 
-// ===== SEND MESSAGE =====
+// SEND MESSAGE
 window.sendMessage = async function () {
   const input = document.getElementById("msgInput");
   const text = input.value.trim();
   if (!text) return;
-
   const msg = { sender: auth.currentUser.uid, text, timestamp: Date.now() };
   const chatDocRef = doc(db, "chats", window.currentChatId);
-
-  try {
-    await updateDoc(chatDocRef, { messages: arrayUnion(msg) });
-  } catch {
-    await setDoc(chatDocRef, { messages: [msg] });
-  }
-
+  try { await updateDoc(chatDocRef, { messages: arrayUnion(msg) }); }
+  catch { await setDoc(chatDocRef, { messages: [msg] }); }
   input.value = "";
 };
