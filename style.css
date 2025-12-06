@@ -1,0 +1,159 @@
+/* GLOBAL RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* BACKGROUND */
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a0a, #1a0000, #2a0000);
+  font-family: "Segoe UI", system-ui, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+}
+
+/* CARD STYLE */
+body > * {
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(20px);
+  border-radius: 18px;
+  padding: 30px 25px;
+  width: 95%;
+  max-width: 420px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.8);
+  animation: fadeIn 0.6s ease;
+}
+
+/* TITLE */
+h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  color: #ff4b4b;
+}
+
+/* INPUT */
+input {
+  width: 100%;
+  padding: 14px 16px;
+  margin-top: 12px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 15px;
+}
+
+input::placeholder {
+  color: #999;
+}
+
+/* FOCUS */
+input:focus {
+  border: 1px solid #ff4b4b;
+  box-shadow: 0 0 10px #ff4b4b70;
+}
+
+/* BUTTON */
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 18px;
+  background: linear-gradient(135deg, #ff0000, #b30000);
+  border: none;
+  color: white;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 15px;
+  transition: 0.2s ease;
+}
+
+button:hover {
+  transform: scale(1.04);
+  box-shadow: 0 10px 20px #ff000070;
+}
+
+/* LINKS */
+p {
+  margin-top: 15px;
+  text-align: center;
+}
+
+a {
+  color: #ff4b4b;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* USER LIST */
+#userList {
+  list-style: none;
+  margin-top: 15px;
+}
+
+#userList li {
+  padding: 12px;
+  margin-top: 8px;
+  background: #111;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#userList li:hover {
+  background: #250000;
+}
+
+/* CHAT BOX */
+#chatBox {
+  margin-top: 18px;
+}
+
+/* MESSAGE AREA */
+#messages {
+  background: #111;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+/* SCROLL BAR */
+#messages::-webkit-scrollbar {
+  width: 5px;
+}
+#messages::-webkit-scrollbar-thumb {
+  background: #ff4b4b;
+  border-radius: 10px;
+}
+
+/* FADE ANIMATION */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* MOBILE FRIENDLY */
+@media (max-width: 480px) {
+  body > * {
+    padding: 24px 18px;
+  }
+}
