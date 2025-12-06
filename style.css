@@ -6,10 +6,7 @@
 }
 
 /* ----------- BASE STYLES ----------- */
-html {
-  font-size: 16px;
-  scroll-behavior: smooth;
-}
+html { font-size: 16px; scroll-behavior: smooth; }
 
 body {
   min-height: 100vh;
@@ -49,24 +46,10 @@ h2, h1 {
   margin-bottom: 1.2rem;
   letter-spacing: 1.2px;
 }
-p, label, input, button, a {
-  font-size: 1.08rem;
-  letter-spacing: 0.01em;
-}
-p {
-  color: #f5f5f7;
-  opacity: 0.89;
-  margin-top: 1.1rem;
-}
-a {
-  color: #ff334a;
-  font-weight: 600;
-  transition: color 0.18s;
-}
-a:hover, a:focus {
-  color: #ff505f;
-  text-decoration: underline;
-}
+p, label, input, button, a { font-size: 1.08rem; letter-spacing: 0.01em; }
+p { color: #f5f5f7; opacity: 0.89; margin-top: 1.1rem; }
+a { color: #ff334a; font-weight: 600; transition: color 0.18s; }
+a:hover, a:focus { color: #ff505f; text-decoration: underline; }
 
 /* ----------- FORM ELEMENTS ----------- */
 input, select {
@@ -82,16 +65,8 @@ input, select {
   outline: 1px solid rgba(255,51,74,0.08);
   box-shadow: none;
 }
-input::placeholder {
-  color: #b3394d;
-  opacity: 0.55;
-  font-size: 1em;
-}
-input:focus, select:focus {
-  outline: 2.5px solid #ff334a66;
-  background: rgba(32, 18, 35, 1);
-  box-shadow: 0 0 7px #ff334a60;
-}
+input::placeholder { color: #b3394d; opacity: 0.55; font-size: 1em; }
+input:focus, select:focus { outline: 2.5px solid #ff334a66; background: rgba(32, 18, 35, 1); box-shadow: 0 0 7px #ff334a60; }
 
 /* ----------- BUTTONS ----------- */
 button {
@@ -136,35 +111,16 @@ button:hover, button:focus {
   position: relative;
   transition: background 0.15s, color 0.15s, box-shadow 0.17s;
 }
-#userList li:hover, #userList li.active {
-  background: #2a001a;
-  color: #ff334a;
-  box-shadow: 0 2px 5px #ff254a13;
-}
-#userList li:first-child { margin-top: 0; }
-
-/* Hide scrollbar for user list on mobile for style */
-#userList {
-  scrollbar-width: thin;
-  scrollbar-color: #ff254a #180710;
-}
-#userList::-webkit-scrollbar {
-  width: 7px;
-}
-#userList::-webkit-scrollbar-thumb {
-  background: #ff334a;
-  border-radius: 8px;
-}
-#userList::-webkit-scrollbar-track {
-  background: transparent;
-}
+#userList li:hover, #userList li.active { background: #2a001a; color: #ff334a; box-shadow: 0 2px 5px #ff254a13; }
 
 /* ----------- CHAT BOX ----------- */
-#chatBox {
-  margin-top: 1.3rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+#chatBox { 
+  margin-top: 1.3rem; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 0.5rem; 
+  width: 100%;       /* full width of container */
+  max-width: 1000px;  /* wider than before */
 }
 
 /* ----------- MESSAGE AREA ----------- */
@@ -174,8 +130,8 @@ button:hover, button:focus {
   box-shadow: 0 1.5px 8px 0 #ff334a21;
   padding: 1.18rem 0.85rem 1.08rem;
   margin-top: 0.7rem;
-  min-height: 108px;
-  max-height: 340px;
+  min-height: 300px;  /* bigger min-height */
+  max-height: 500px;  /* bigger max-height */
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -184,16 +140,10 @@ button:hover, button:focus {
   scrollbar-width: thin;
   scrollbar-color: #ff254a #200913;
 }
-#messages::-webkit-scrollbar {
-  width: 6px;
-}
-#messages::-webkit-scrollbar-thumb {
-  background: #ff254a;
-  border-radius: 10px;
-}
-#messages::-webkit-scrollbar-track {
-  background: transparent;
-}
+
+#messages::-webkit-scrollbar { width: 6px; }
+#messages::-webkit-scrollbar-thumb { background: #ff254a; border-radius: 10px; }
+#messages::-webkit-scrollbar-track { background: transparent; }
 
 /* ----------- CHAT BUBBLES ----------- */
 .message {
@@ -205,7 +155,6 @@ button:hover, button:focus {
   0% { opacity: 0; transform: translateY(15px) scale(.98);}
   100% { opacity: 1; transform: translateY(0) scale(1);}
 }
-
 .bubble {
   max-width: 79%;
   padding: 0.83rem 1.09rem;
@@ -216,116 +165,23 @@ button:hover, button:focus {
   box-shadow: 0 2.5px 14px #22001619;
   transition: background 0.15s;
 }
-.bubble.you {
-  background: linear-gradient(120deg,#80191c 20%,#ff254a 100%);
-  align-self: flex-end;
-  color: #fff;
-  border-bottom-right-radius: 5px;
-  margin-left: auto;
-}
-.bubble.other {
-  background: linear-gradient(120deg,#18111a,#2e192d 97%);
-  align-self: flex-start;
-  color: #fafaff;
-  border-bottom-left-radius: 5px;
-  margin-right: auto;
-}
-.bubble .time {
-  display: block;
-  font-size: .81rem;
-  color: #ff829c;
-  text-align: right;
-  margin-top: 0.2em;
-  opacity: 0.81;
-}
-
-/* Show sender ("You" or anonymous) */
-.bubble .sender {
-  font-size: .83rem;
-  font-weight: 600;
-  color: #ff334a;
-  margin-bottom: 0.2em;
-  display: block;
-  opacity: 0.85;
-}
+.bubble.you { background: linear-gradient(120deg,#06af3c 20%,#106b18 100%); align-self: flex-end; color: #fff; border-bottom-right-radius: 5px; margin-left: auto; }
+.bubble.other { background: linear-gradient(120deg,#18111a,#2e192d 97%); align-self: flex-start; color: #fafaff; border-bottom-left-radius: 5px; margin-right: auto; }
+.bubble .time { display: block; font-size: .81rem; color: #ff829c; text-align: right; margin-top: 0.2em; opacity: 0.81; }
+.bubble .sender { font-size: .83rem; font-weight: 600; color: #ff334a; margin-bottom: 0.2em; display: block; opacity: 0.85; }
 
 /* ----------- CHAT INPUT ROW ----------- */
-.chat-input-row {
-  display: flex;
-  margin-top: 0.55rem;
-  gap: 0.7rem;
-}
-.chat-input-row input[type="text"] {
-  flex: 1 1 0;
-  margin-top: 0;
-  margin-right: 0;
-}
-.chat-input-row button {
-  width: auto;
-  min-width: 52px;
-  padding: 0.95rem 1.3rem;
-  margin-top: 0;
-  border-radius: 12px;
-}
-
-/* ----------- SEARCH BAR ----------- */
-#userSearch {
-  margin-top: .9rem;
-}
-#userSearch input[type="text"] {
-  padding: 1rem 1.2rem;
-  border-radius: 11px;
-  background: #1a121c;
-}
+.chat-input-row { display: flex; margin-top: 0.55rem; gap: 0.7rem; }
+.chat-input-row input[type="text"] { flex: 1 1 0; margin-top: 0; margin-right: 0; }
+.chat-input-row button { width: auto; min-width: 52px; padding: 0.95rem 1.3rem; margin-top: 0; border-radius: 12px; }
 
 /* ----------- LOGOUT LINK ----------- */
-#logout {
-  display: block;
-  text-align: right;
-  margin-top: 1.2rem;
-  color: #ff334a;
-  font-size: 1rem;
-  text-decoration: none;
-}
-#logout:hover, #logout:focus {
-  color: #ff829c;
-  text-decoration: underline;
-}
+#logout { display: block; text-align: right; margin-top: 1.2rem; color: #ff334a; font-size: 1rem; text-decoration: none; }
+#logout:hover, #logout:focus { color: #ff829c; text-decoration: underline; }
 
-/* ----------- RESPONSIVE STYLES ----------- */
-/* Mobile-first: make things bigger and touch friendly */
-@media (max-width: 650px) {
-  html { font-size: 15px; }
-  body > * {
-    padding: 1.13rem 0.87rem 1.35rem;
-    margin: 0.8rem;
-    max-width: 99vw;
-  }
-  #userList { max-height: 128px; }
-  #messages { max-height: 210px; padding: 1.08rem 0.65rem 1rem; }
-}
-
-/* Landscape Phones & tablets */
-@media (min-width: 650px) and (max-width: 1020px) {
-  html { font-size: 16px; }
-  body > * { max-width: 100vw; }
-  #userList { max-height: 168px;}
-  #messages { max-height: 290px;}
-}
-
-/* Desktop */
-@media (min-width: 1021px) {
-  html { font-size: 17px; }
-  body > * { max-width: 450px; }
-}
-
-@media (max-width: 420px) {
-  h2, h1 { font-size: 1.3rem; }
-  p, label, input, button, a { font-size: 0.98rem; }
-  .bubble { font-size: .99rem;}
-}
-
+/* ----------- RESPONSIVE ----------- */
+@media (max-width: 650px) { html { font-size: 15px; } body > * { padding: 1.13rem 0.87rem 1.35rem; margin: 0.8rem; max-width: 99vw; } #userList { max-height: 128px; } #messages { max-height: 210px; padding: 1.08rem 0.65rem 1rem; } }
+@media (min-width: 650px) and (max-width: 1020px) { html { font-size: 16px; } body > * { max-width: 100vw; } #userList { max-height: 168px;} #messages { max-height: 290px;} }
+@media (min-width: 1021px) { html { font-size: 17px; } body > * { max-width: 450px; } }
+@media (max-width: 420px) { h2, h1 { font-size: 1.3rem; } p, label, input, button, a { font-size: 0.98rem; } .bubble { font-size: .99rem;} }
 ::-webkit-input-placeholder { color: #b3394d; opacity: 0.5;}
-::-moz-placeholder { color: #b3394d; opacity: 0.5;}
-:-ms-input-placeholder { color: #b3394d; opacity: 0.5;}
-::placeholder { color: #b3394d; opacity: 0.5;}
