@@ -3,27 +3,27 @@
 <head>
   <title>Chat App</title>
   <link rel="stylesheet" href="style.css">
-
 </head>
 <body>
+  <div class="card">
+    <h2>Welcome to Chat ✅</h2>
 
-<h2>Welcome to Chat ✅</h2>
+    <!-- Search Users -->
+    <div class="chat-input-row">
+      <input type="text" id="searchUser" placeholder="Search username">
+      <button onclick="searchUser()">Search</button>
+    </div>
 
-<!-- Search Users -->
-<input type="text" id="searchUser" placeholder="Search username">
-<button onclick="searchUser()">Search</button>
+    <!-- List of users found -->
+    <ul id="userList"></ul>
 
-<!-- List of users found -->
-<ul id="userList"></ul>
+    <!-- Chat Box -->
+    <div id="chatBox"></div>
 
-<!-- Chat Box -->
-<div id="chatBox"></div>
+    <!-- Logout -->
+    <p><a href="#" onclick="logout()">Logout</a></p>
+  </div>
 
-<!-- Logout -->
-<p><a href="#" onclick="logout()">Logout</a></p>
-
-<script type="module" src="app.js"></script>
-
+  <script type="module" src="app.js"></script>
 </body>
 </html>
-
