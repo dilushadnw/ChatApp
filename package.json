@@ -1,0 +1,22 @@
+{
+  "name": "chatapp",
+  "version": "2.0.0",
+  "description": "Production-ready real-time chat application with notifications",
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "serve": "npx http-server -p 8080 -c-1",
+    "lint": "eslint src/**/*.js app.js"
+  },
+  "keywords": ["chat", "firebase", "real-time", "notifications"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "eslint": "^8.56.0",
+    "http-server": "^14.1.1",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  }
+}
