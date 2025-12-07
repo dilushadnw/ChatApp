@@ -4,8 +4,8 @@
   "description": "Production-ready real-time chat application with notifications",
   "type": "module",
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "serve": "npx http-server -p 8080 -c-1",
     "lint": "eslint src/**/*.js app.js"
   },
