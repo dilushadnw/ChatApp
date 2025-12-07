@@ -42,6 +42,19 @@ export class MessageBubble {
     `;
 
     div.appendChild(bubble);
+    
+    // Add event listener for image clicks using delegation
+    if (this.message.imageUrl) {
+      const img = bubble.querySelector('.message-image');
+      if (img) {
+        img.addEventListener('click', () => {
+          if (window.openImageModal) {
+            window.openImageModal(this.message.imageUrl);
+          }
+        });
+      }
+    }
+    
     return div;
   }
 
@@ -49,14 +62,16 @@ export class MessageBubble {
    * Render image if present
    */
   renderImage() {
+    const imageUrl = this.escapeHtml(this.message.imageUrl);
     return `
       <div class="message-image-container">
         <img 
-          src="${this.escapeHtml(this.message.imageUrl)}" 
+          src="${imageUrl}" 
           alt="Shared image" 
           class="message-image"
           loading="lazy"
-          onclick="window.openImageModal('${this.escapeHtml(this.message.imageUrl)}')"
+          data-image-url="${imageUrl}"
+          style="cursor: pointer;"
         >
       </div>
     `;

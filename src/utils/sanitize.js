@@ -39,38 +39,43 @@ function linkifyUrls(text) {
   return text.replace(urlPattern, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
 }
 
+// Pre-compiled emoji patterns for better performance
+const emojiMap = {
+  ':smile:': '😊',
+  ':laugh:': '😂',
+  ':heart:': '❤️',
+  ':thumbsup:': '👍',
+  ':thumbsdown:': '👎',
+  ':fire:': '🔥',
+  ':tada:': '🎉',
+  ':rocket:': '🚀',
+  ':eyes:': '👀',
+  ':thinking:': '🤔',
+  ':wave:': '👋',
+  ':clap:': '👏',
+  ':pray:': '🙏',
+  ':100:': '💯',
+  ':cry:': '😢',
+  ':angry:': '😠',
+  ':cool:': '😎',
+  ':wink:': '😉',
+  ':kiss:': '😘',
+  ':star:': '⭐'
+};
+
+// Create a single regex pattern for all emoji shortcuts
+const emojiPattern = new RegExp(
+  Object.keys(emojiMap)
+    .map(key => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('|'),
+  'g'
+);
+
 /**
  * Convert emoji shortcuts like :smile: to emoji
  */
 function convertEmojiShortcuts(text) {
-  const emojiMap = {
-    ':smile:': '😊',
-    ':laugh:': '😂',
-    ':heart:': '❤️',
-    ':thumbsup:': '👍',
-    ':thumbsdown:': '👎',
-    ':fire:': '🔥',
-    ':tada:': '🎉',
-    ':rocket:': '🚀',
-    ':eyes:': '👀',
-    ':thinking:': '🤔',
-    ':wave:': '👋',
-    ':clap:': '👏',
-    ':pray:': '🙏',
-    ':100:': '💯',
-    ':cry:': '😢',
-    ':angry:': '😠',
-    ':cool:': '😎',
-    ':wink:': '😉',
-    ':kiss:': '😘',
-    ':star:': '⭐'
-  };
-
-  let result = text;
-  for (const [shortcut, emoji] of Object.entries(emojiMap)) {
-    result = result.replace(new RegExp(shortcut.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), emoji);
-  }
-  return result;
+  return text.replace(emojiPattern, match => emojiMap[match] || match);
 }
 
 /**

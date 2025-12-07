@@ -105,21 +105,42 @@ export class NotificationService {
   isDoNotDisturb() {
     if (!this.settings.dndStart || !this.settings.dndEnd) return false;
 
-    const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-    const currentTime = currentHour * 60 + currentMinute;
+    try {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const currentTime = currentHour * 60 + currentMinute;
 
-    const [startHour, startMinute] = this.settings.dndStart.split(':').map(Number);
-    const [endHour, endMinute] = this.settings.dndEnd.split(':').map(Number);
-    const startTime = startHour * 60 + startMinute;
-    const endTime = endHour * 60 + endMinute;
+      const startParts = this.settings.dndStart.split(':');
+      const endParts = this.settings.dndEnd.split(':');
+      
+      if (startParts.length !== 2 || endParts.length !== 2) {
+        console.error('Invalid DND time format');
+        return false;
+      }
 
-    if (startTime < endTime) {
-      return currentTime >= startTime && currentTime < endTime;
-    } else {
-      // DND spans midnight
-      return currentTime >= startTime || currentTime < endTime;
+      const startHour = parseInt(startParts[0], 10);
+      const startMinute = parseInt(startParts[1], 10);
+      const endHour = parseInt(endParts[0], 10);
+      const endMinute = parseInt(endParts[1], 10);
+      
+      if (isNaN(startHour) || isNaN(startMinute) || isNaN(endHour) || isNaN(endMinute)) {
+        console.error('Invalid DND time values');
+        return false;
+      }
+      
+      const startTime = startHour * 60 + startMinute;
+      const endTime = endHour * 60 + endMinute;
+
+      if (startTime < endTime) {
+        return currentTime >= startTime && currentTime < endTime;
+      } else {
+        // DND spans midnight
+        return currentTime >= startTime || currentTime < endTime;
+      }
+    } catch (error) {
+      console.error('Error checking DND status:', error);
+      return false;
     }
   }
 

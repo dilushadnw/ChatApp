@@ -213,7 +213,13 @@ export class Settings {
     setTimeout(() => {
       toast.classList.remove('show');
       setTimeout(() => {
-        document.body.removeChild(toast);
+        try {
+          if (toast.parentNode === document.body) {
+            document.body.removeChild(toast);
+          }
+        } catch (error) {
+          console.error('Error removing toast:', error);
+        }
       }, 300);
     }, 3000);
   }
