@@ -3,7 +3,7 @@
  * Message input with file upload and emoji support
  */
 
-import { isValidImageType, isValidFileSize } from '../utils/sanitize.js';
+import { isValidImageType, isValidVideoType, isValidMediaType, isValidFileSize, isVideoFile } from '../utils/sanitize.js';
 
 export class Composer {
   constructor(container, onSendMessage) {
@@ -47,7 +47,7 @@ export class Composer {
             </svg>
           </button>
         </div>
-        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        <input type="file" id="fileInput" accept="image/*,video/*" style="display: none;">
         <div class="emoji-picker" id="emojiPicker" style="display: none;"></div>
       </div>
     `;
@@ -146,14 +146,16 @@ export class Composer {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file
-    if (!isValidImageType(file)) {
-      alert('Please select a valid image file (JPEG, PNG, GIF, or WebP)');
+    // Validate file type
+    if (!isValidMediaType(file)) {
+      alert('Please select a valid image (JPEG, PNG, GIF, WebP) or video file (MP4, WebM, MOV)');
       return;
     }
 
+    // Validate file size
+    const maxSize = isVideoFile(file) ? 50 : 5;
     if (!isValidFileSize(file)) {
-      alert('File size must be less than 5MB');
+      alert(`File size must be less than ${maxSize}MB`);
       return;
     }
 
@@ -172,7 +174,14 @@ export class Composer {
 
     const reader = new FileReader();
     reader.onload = (e) => {
-      previewImage.src = e.target.result;
+      if (isVideoFile(file)) {
+        // For videos, show a video icon or first frame
+        previewImage.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjMzMzIi8+Cjxwb2x5Z29uIHBvaW50cz0iNDAsMzAgNDAsNzAgNzAsNTAiIGZpbGw9IiNmZmYiLz4KPC9zdmc+';
+        previewImage.alt = `Video: ${file.name}`;
+      } else {
+        previewImage.src = e.target.result;
+        previewImage.alt = `Image: ${file.name}`;
+      }
       preview.style.display = 'flex';
     };
     reader.readAsDataURL(file);

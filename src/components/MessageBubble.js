@@ -35,6 +35,7 @@ export class MessageBubble {
       <span class="sender">${this.escapeHtml(senderLabel)}</span>
       <div class="message-content">${sanitizeMessage(this.message.text)}</div>
       ${this.message.imageUrl ? this.renderImage() : ''}
+      ${this.message.videoUrl ? this.renderVideo() : ''}
       <div class="message-footer">
         <span class="time">${this.formatTime(this.message.timestamp)}</span>
         ${this.isOwn ? statusIcon : ''}
@@ -50,6 +51,18 @@ export class MessageBubble {
         img.addEventListener('click', () => {
           if (window.openImageModal) {
             window.openImageModal(this.message.imageUrl);
+          }
+        });
+      }
+    }
+    
+    // Add event listener for video clicks
+    if (this.message.videoUrl) {
+      const video = bubble.querySelector('.message-video');
+      if (video) {
+        video.addEventListener('click', () => {
+          if (window.openVideoModal) {
+            window.openVideoModal(this.message.videoUrl);
           }
         });
       }
@@ -73,6 +86,26 @@ export class MessageBubble {
           data-image-url="${imageUrl}"
           style="cursor: pointer;"
         >
+      </div>
+    `;
+  }
+
+  /**
+   * Render video if present
+   */
+  renderVideo() {
+    const videoUrl = this.escapeHtml(this.message.videoUrl);
+    return `
+      <div class="message-video-container">
+        <video 
+          class="message-video"
+          controls
+          preload="metadata"
+          style="cursor: pointer; max-width: 100%; border-radius: 8px;"
+        >
+          <source src="${videoUrl}" type="${this.message.videoType || 'video/mp4'}">
+          Your browser does not support the video tag.
+        </video>
       </div>
     `;
   }

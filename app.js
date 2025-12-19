@@ -1,11 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
 import { notificationService } from './src/services/notifications.js';
 import { ConversationList } from './src/components/ConversationList.js';
 import { ChatWindow } from './src/components/ChatWindow.js';
 import { Settings } from './src/components/Settings.js';
 import { imageModal } from './src/components/ImageModal.js';
+import { videoModal } from './src/components/VideoModal.js';
 import { TypingIndicator } from './src/utils/typing.js';
 
 const firebaseConfig = {
@@ -20,6 +22,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 // Global app state
 let conversationList = null;
@@ -157,11 +160,20 @@ function openChat(otherUid, otherUsername) {
 }
 
 // SEND MESSAGE
-window.sendMessage = async function () {
+window.sendMessage = async function (messageData) {
   const input = document.getElementById("msgInput");
-  const text = input.value.trim();
-  if (!text) return;
-  const msg = { sender: auth.currentUser.uid, text, timestamp: Date.now(), status: 'sending' };
+  const text = messageData?.text || input?.value.trim();
+  const file = messageData?.file;
+  
+  if (!text && !file) return;
+  
+  const msg = { 
+    sender: auth.currentUser.uid, 
+    text: text || '', 
+    timestamp: Date.now(), 
+    status: 'sending' 
+  };
+  
   const chatDocRef = doc(db, "chats", window.currentChatId);
   
   // Optimistic UI - add message immediately
@@ -169,7 +181,19 @@ window.sendMessage = async function () {
     chatWindow.addMessage(msg, true, 'You', true);
   }
   
-  try { 
+  try {
+    // Upload file if present
+    if (file) {
+      const fileUrl = await uploadFile(file, msg.timestamp);
+      const isVideo = file.type.startsWith('video/');
+      if (isVideo) {
+        msg.videoUrl = fileUrl;
+        msg.videoType = file.type;
+      } else {
+        msg.imageUrl = fileUrl;
+      }
+    }
+    
     await updateDoc(chatDocRef, { messages: arrayUnion(msg) }); 
     // Update status to sent
     if (chatWindow) {
@@ -182,8 +206,35 @@ window.sendMessage = async function () {
       chatWindow.updateMessageStatus(msg.timestamp, 'sent');
     }
   }
-  input.value = "";
+  
+  if (input) input.value = "";
 };
+
+// UPLOAD FILE TO STORAGE
+async function uploadFile(file, timestamp) {
+  const fileExtension = file.name.split('.').pop();
+  const fileName = `${auth.currentUser.uid}_${timestamp}.${fileExtension}`;
+  const storageRef = ref(storage, `chat-media/${fileName}`);
+  
+  const uploadTask = uploadBytesResumable(storageRef, file);
+  
+  return new Promise((resolve, reject) => {
+    uploadTask.on('state_changed',
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        console.log('Upload is ' + progress + '% done');
+      },
+      (error) => {
+        console.error('Upload error:', error);
+        reject(error);
+      },
+      async () => {
+        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+        resolve(downloadURL);
+      }
+    );
+  });
+}
 
 // Initialize components on chat.html page
 if (window.location.pathname.includes('chat.html')) {
