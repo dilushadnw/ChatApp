@@ -5,6 +5,9 @@
 
 import { isValidImageType, isValidVideoType, isValidMediaType, isValidFileSize, isVideoFile } from '../utils/sanitize.js';
 
+// Video preview placeholder icon
+const VIDEO_PREVIEW_ICON = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjMzMzIi8+Cjxwb2x5Z29uIHBvaW50cz0iNDAsMzAgNDAsNzAgNzAsNTAiIGZpbGw9IiNmZmYiLz4KPC9zdmc+';
+
 export class Composer {
   constructor(container, onSendMessage) {
     this.container = container;
@@ -175,8 +178,8 @@ export class Composer {
     const reader = new FileReader();
     reader.onload = (e) => {
       if (isVideoFile(file)) {
-        // For videos, show a video icon or first frame
-        previewImage.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjMzMzIi8+Cjxwb2x5Z29uIHBvaW50cz0iNDAsMzAgNDAsNzAgNzAsNTAiIGZpbGw9IiNmZmYiLz4KPC9zdmc+';
+        // For videos, show a video icon
+        previewImage.src = VIDEO_PREVIEW_ICON;
         previewImage.alt = `Video: ${file.name}`;
       } else {
         previewImage.src = e.target.result;

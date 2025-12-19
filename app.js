@@ -185,7 +185,8 @@ window.sendMessage = async function (messageData) {
     // Upload file if present
     if (file) {
       const fileUrl = await uploadFile(file, msg.timestamp);
-      const isVideo = file.type.startsWith('video/');
+      const { isVideoFile } = await import('./src/utils/sanitize.js');
+      const isVideo = isVideoFile(file);
       if (isVideo) {
         msg.videoUrl = fileUrl;
         msg.videoType = file.type;

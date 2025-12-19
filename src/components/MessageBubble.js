@@ -95,6 +95,7 @@ export class MessageBubble {
    */
   renderVideo() {
     const videoUrl = this.escapeHtml(this.message.videoUrl);
+    const videoType = this.message.videoType || '';
     return `
       <div class="message-video-container">
         <video 
@@ -102,8 +103,9 @@ export class MessageBubble {
           controls
           preload="metadata"
           style="cursor: pointer; max-width: 100%; border-radius: 8px;"
+          ${videoType ? `type="${videoType}"` : ''}
         >
-          <source src="${videoUrl}" type="${this.message.videoType || 'video/mp4'}">
+          <source src="${videoUrl}"${videoType ? ` type="${videoType}"` : ''}>
           Your browser does not support the video tag.
         </video>
       </div>
