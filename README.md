@@ -18,6 +18,7 @@ A modern, feature-rich chat application built with vanilla JavaScript and Fireba
 - **Auto-scroll**: Smart scrolling with pin position option
 - **Emoji Support**: Built-in emoji picker and shortcode support (e.g., `:smile:`)
 - **Image Sharing**: Send images with preview and full-screen viewing
+- **Video Sharing**: Upload and share video files (MP4, WebM, MOV) with inline playback
 
 ### Notifications
 - **Desktop Notifications**: Browser notifications when receiving messages
@@ -29,8 +30,9 @@ A modern, feature-rich chat application built with vanilla JavaScript and Fireba
 
 ### Security & Performance
 - **XSS Prevention**: Content sanitization and HTML escaping
-- **Input Validation**: File type and size validation for uploads
+- **Input Validation**: File type and size validation for uploads (images up to 5MB, videos up to 50MB)
 - **Lazy Loading**: Efficient image loading
+- **Cloud Storage**: Firebase Storage integration for media files
 - **Optimistic UI**: Instant message display with async server sync
 - **Rate Limiting**: Built-in debouncing for typing indicators
 
@@ -98,6 +100,7 @@ While the app uses Firebase SDK directly in the browser, you can configure these
 3. Create a Firestore database with these collections:
    - `users`: Stores user profiles
    - `chats`: Stores conversation messages
+4. Enable Firebase Storage for media file uploads
 
 #### Firestore Security Rules
 
@@ -113,6 +116,22 @@ service cloud.firestore {
     match /chats/{chatId} {
       allow read, write: if request.auth != null && 
         chatId.matches('.*' + request.auth.uid + '.*');
+    }
+  }
+}
+```
+
+#### Storage Security Rules
+
+```javascript
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /chat-media/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        request.resource.size < 50 * 1024 * 1024 && // Max 50MB
+        request.resource.contentType.matches('image/.*|video/.*');
     }
   }
 }
@@ -176,13 +195,14 @@ ChatApp/
 │   │   ├── ConversationList.js # Conversation sidebar
 │   │   ├── ChatWindow.js       # Main chat view
 │   │   ├── MessageBubble.js    # Message component
-│   │   ├── Composer.js         # Message input
+│   │   ├── Composer.js         # Message input with file upload
 │   │   ├── Settings.js         # Settings modal
-│   │   └── ImageModal.js       # Image viewer
+│   │   ├── ImageModal.js       # Image viewer
+│   │   └── VideoModal.js       # Video player
 │   ├── services/
 │   │   └── notifications.js    # Notification service
 │   ├── utils/
-│   │   ├── sanitize.js         # XSS prevention
+│   │   ├── sanitize.js         # XSS prevention & file validation
 │   │   └── typing.js           # Typing indicators
 │   └── styles/
 │       └── responsive.css      # Responsive layout
