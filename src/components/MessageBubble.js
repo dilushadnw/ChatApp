@@ -31,10 +31,21 @@ export class MessageBubble {
     const senderLabel = this.isOwn ? 'You' : this.senderName;
     const statusIcon = this.getStatusIcon();
     
+    // Build message content
+    let mediaContent = '';
+    if (this.message.imageUrl) {
+      mediaContent = this.renderImage();
+    } else if (this.message.videoUrl) {
+      mediaContent = this.renderVideo();
+    }
+    
+    const textContent = this.message.text ? 
+      `<div class="message-content">${sanitizeMessage(this.message.text)}</div>` : '';
+    
     bubble.innerHTML = `
       <span class="sender">${this.escapeHtml(senderLabel)}</span>
-      <div class="message-content">${sanitizeMessage(this.message.text)}</div>
-      ${this.message.imageUrl ? this.renderImage() : ''}
+      ${textContent}
+      ${mediaContent}
       <div class="message-footer">
         <span class="time">${this.formatTime(this.message.timestamp)}</span>
         ${this.isOwn ? statusIcon : ''}
@@ -43,13 +54,22 @@ export class MessageBubble {
 
     div.appendChild(bubble);
     
-    // Add event listener for image clicks using delegation
+    // Add event listener for media clicks
     if (this.message.imageUrl) {
       const img = bubble.querySelector('.message-image');
       if (img) {
         img.addEventListener('click', () => {
           if (window.openImageModal) {
             window.openImageModal(this.message.imageUrl);
+          }
+        });
+      }
+    } else if (this.message.videoUrl) {
+      const video = bubble.querySelector('.message-video');
+      if (video) {
+        video.addEventListener('click', () => {
+          if (window.openImageModal) {
+            window.openImageModal(this.message.videoUrl, 'video');
           }
         });
       }
@@ -73,6 +93,26 @@ export class MessageBubble {
           data-image-url="${imageUrl}"
           style="cursor: pointer;"
         >
+      </div>
+    `;
+  }
+
+  /**
+   * Render video if present
+   */
+  renderVideo() {
+    const videoUrl = this.escapeHtml(this.message.videoUrl);
+    return `
+      <div class="message-video-container">
+        <video 
+          src="${videoUrl}" 
+          class="message-video"
+          controls
+          preload="metadata"
+          data-video-url="${videoUrl}"
+        >
+          Your browser does not support the video tag.
+        </video>
       </div>
     `;
   }

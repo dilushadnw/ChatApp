@@ -512,6 +512,17 @@
   opacity: 0.9;
 }
 
+.message-video-container {
+  margin-top: 0.5rem;
+}
+
+.message-video {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
 .message-footer {
   display: flex;
   align-items: center;
@@ -571,11 +582,25 @@
   position: relative;
 }
 
-.preview-image {
-  max-width: 100px;
-  max-height: 100px;
+.preview-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.preview-image,
+.preview-video {
+  max-width: 120px;
+  max-height: 120px;
   border-radius: 8px;
   object-fit: cover;
+}
+
+.preview-label {
+  font-size: 0.85rem;
+  color: #ff829c;
+  font-weight: 500;
 }
 
 .remove-file-btn {
@@ -595,6 +620,73 @@
   align-items: center;
   justify-content: center;
   line-height: 1;
+}
+
+/* Upload Progress Bar */
+.upload-progress {
+  display: none;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.8rem;
+  background: rgba(32, 18, 35, 0.92);
+  border-radius: 12px;
+  margin-bottom: 0.8rem;
+}
+
+.upload-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.upload-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff334a, #06af3c);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.upload-progress-text {
+  font-size: 0.85rem;
+  color: #ff829c;
+  text-align: center;
+}
+
+/* Drag and Drop Overlay */
+.drag-drop-overlay {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 51, 74, 0.1);
+  border: 2px dashed #ff334a;
+  border-radius: 12px;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+}
+
+.drag-drop-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: #ff334a;
+  font-weight: 600;
+}
+
+.drag-drop-content svg {
+  opacity: 0.8;
+}
+
+.drag-drop-content p {
+  margin: 0;
+  font-size: 1.1rem;
 }
 
 .composer-row {
@@ -910,6 +1002,12 @@ input:checked + .slider:before {
   max-height: 90vh;
 }
 
+.image-modal-media-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .image-modal-close {
   position: absolute;
   top: 1rem;
@@ -931,6 +1029,12 @@ input:checked + .slider:before {
 }
 
 .image-modal-img {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 8px;
+}
+
+.image-modal-img video {
   max-width: 90vw;
   max-height: 90vh;
   border-radius: 8px;

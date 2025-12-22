@@ -1,15 +1,17 @@
 /**
  * Composer Component
- * Message input with file upload and emoji support
+ * Message input with media upload (images/videos), drag-and-drop, and emoji support
  */
 
-import { isValidImageType, isValidFileSize } from '../utils/sanitize.js';
+import { isValidMediaType, isValidFileSize, getMediaType } from '../utils/sanitize.js';
 
 export class Composer {
   constructor(container, onSendMessage) {
     this.container = container;
     this.onSendMessage = onSendMessage;
     this.selectedFile = null;
+    this.isUploading = false;
+    this.uploadProgress = 0;
     this.render();
   }
 
@@ -19,12 +21,32 @@ export class Composer {
   render() {
     this.container.innerHTML = `
       <div class="composer">
+        <!-- Upload Progress Bar -->
+        <div class="upload-progress" id="uploadProgress" style="display: none;">
+          <div class="upload-progress-bar">
+            <div class="upload-progress-fill" id="uploadProgressFill" style="width: 0%;"></div>
+          </div>
+          <span class="upload-progress-text" id="uploadProgressText">Uploading... 0%</span>
+        </div>
+        
+        <!-- File Preview -->
         <div class="file-preview" id="filePreview" style="display: none;">
-          <img id="previewImage" alt="Preview" class="preview-image">
+          <div class="preview-content" id="previewContent"></div>
           <button class="remove-file-btn" id="removeFileBtn" aria-label="Remove file">×</button>
         </div>
+        
+        <!-- Drag and Drop Overlay -->
+        <div class="drag-drop-overlay" id="dragDropOverlay" style="display: none;">
+          <div class="drag-drop-content">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+            </svg>
+            <p>Drop media file here</p>
+          </div>
+        </div>
+        
         <div class="composer-row">
-          <button class="attach-btn" id="attachBtn" aria-label="Attach file" title="Attach image">
+          <button class="attach-btn" id="attachBtn" aria-label="Attach media" title="Attach image or video">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
               <path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5a2.5 2.5 0 0 0 5 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/>
             </svg>
@@ -47,13 +69,14 @@ export class Composer {
             </svg>
           </button>
         </div>
-        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        <input type="file" id="fileInput" accept="image/*,video/*" style="display: none;">
         <div class="emoji-picker" id="emojiPicker" style="display: none;"></div>
       </div>
     `;
 
     this.setupEventListeners();
     this.setupEmojiPicker();
+    this.setupDragAndDrop();
   }
 
   /**
@@ -98,6 +121,70 @@ export class Composer {
   }
 
   /**
+   * Setup drag and drop functionality
+   */
+  setupDragAndDrop() {
+    const composer = this.container.querySelector('.composer');
+    const overlay = this.container.querySelector('#dragDropOverlay');
+    
+    if (!composer || !overlay) return;
+
+    let dragCounter = 0;
+
+    // Prevent default drag behaviors on the document
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      document.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }, false);
+    });
+
+    // Show overlay when dragging over composer
+    composer.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      dragCounter++;
+      overlay.style.display = 'flex';
+    });
+
+    overlay.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      dragCounter++;
+    });
+
+    overlay.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dragCounter--;
+      if (dragCounter === 0) {
+        overlay.style.display = 'none';
+      }
+    });
+
+    composer.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dragCounter--;
+      if (dragCounter === 0) {
+        overlay.style.display = 'none';
+      }
+    });
+
+    overlay.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    // Handle file drop
+    overlay.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dragCounter = 0;
+      overlay.style.display = 'none';
+      
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        this.handleFileSelect({ target: { files } });
+      }
+    });
+  }
+
+  /**
    * Handle input change (for typing indicator)
    */
   handleInput(e) {
@@ -122,6 +209,11 @@ export class Composer {
     const input = this.container.querySelector('#msgInput');
     const text = input?.value.trim();
 
+    // Prevent sending if already uploading
+    if (this.isUploading) {
+      return;
+    }
+
     if (!text && !this.selectedFile) return;
 
     if (this.onSendMessage) {
@@ -140,20 +232,84 @@ export class Composer {
   }
 
   /**
+   * Set uploading state and disable/enable send button
+   */
+  setUploadingState(isUploading) {
+    this.isUploading = isUploading;
+    const sendBtn = this.container.querySelector('#sendBtn');
+    const attachBtn = this.container.querySelector('#attachBtn');
+    const input = this.container.querySelector('#msgInput');
+
+    if (sendBtn) {
+      sendBtn.disabled = isUploading;
+      sendBtn.style.opacity = isUploading ? '0.5' : '1';
+      sendBtn.style.cursor = isUploading ? 'not-allowed' : 'pointer';
+    }
+
+    if (attachBtn) {
+      attachBtn.disabled = isUploading;
+      attachBtn.style.opacity = isUploading ? '0.5' : '1';
+      attachBtn.style.cursor = isUploading ? 'not-allowed' : 'pointer';
+    }
+
+    if (input) {
+      input.disabled = isUploading;
+      input.style.opacity = isUploading ? '0.7' : '1';
+    }
+  }
+
+  /**
+   * Update upload progress
+   */
+  updateUploadProgress(progress) {
+    this.uploadProgress = progress;
+    const progressBar = this.container.querySelector('#uploadProgressFill');
+    const progressText = this.container.querySelector('#uploadProgressText');
+    const progressContainer = this.container.querySelector('#uploadProgress');
+
+    if (progressContainer) {
+      progressContainer.style.display = progress > 0 && progress < 100 ? 'block' : 'none';
+    }
+
+    if (progressBar) {
+      progressBar.style.width = `${progress}%`;
+    }
+
+    if (progressText) {
+      progressText.textContent = `Uploading... ${Math.round(progress)}%`;
+    }
+  }
+
+  /**
+   * Hide upload progress
+   */
+  hideUploadProgress() {
+    const progressContainer = this.container.querySelector('#uploadProgress');
+    if (progressContainer) {
+      progressContainer.style.display = 'none';
+    }
+    this.uploadProgress = 0;
+  }
+
+  /**
    * Handle file selection
    */
   async handleFileSelect(e) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file
-    if (!isValidImageType(file)) {
-      alert('Please select a valid image file (JPEG, PNG, GIF, or WebP)');
+    // Validate file type (images and videos)
+    if (!isValidMediaType(file)) {
+      alert('Please select a valid media file.\nSupported formats:\n• Images: JPG, PNG, WebP, GIF\n• Videos: MP4, WebM');
       return;
     }
 
-    if (!isValidFileSize(file)) {
-      alert('File size must be less than 5MB');
+    const mediaType = getMediaType(file);
+    const maxSize = mediaType === 'image' ? 5 : 50;
+
+    // Validate file size
+    if (!isValidFileSize(file, maxSize)) {
+      alert(`File size must be less than ${maxSize}MB for ${mediaType}s`);
       return;
     }
 
@@ -166,15 +322,28 @@ export class Composer {
    */
   showFilePreview(file) {
     const preview = this.container.querySelector('#filePreview');
-    const previewImage = this.container.querySelector('#previewImage');
+    const previewContent = this.container.querySelector('#previewContent');
 
-    if (!preview || !previewImage) return;
+    if (!preview || !previewContent) return;
 
+    const mediaType = getMediaType(file);
     const reader = new FileReader();
+    
     reader.onload = (e) => {
-      previewImage.src = e.target.result;
+      if (mediaType === 'image') {
+        previewContent.innerHTML = `
+          <img src="${e.target.result}" alt="Preview" class="preview-image">
+          <span class="preview-label">Image</span>
+        `;
+      } else if (mediaType === 'video') {
+        previewContent.innerHTML = `
+          <video src="${e.target.result}" class="preview-video" muted></video>
+          <span class="preview-label">Video</span>
+        `;
+      }
       preview.style.display = 'flex';
     };
+    
     reader.readAsDataURL(file);
   }
 
