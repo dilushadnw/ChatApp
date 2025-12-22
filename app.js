@@ -8,6 +8,7 @@ import { ChatWindow } from './src/components/ChatWindow.js';
 import { Settings } from './src/components/Settings.js';
 import { imageModal } from './src/components/ImageModal.js';
 import { TypingIndicator } from './src/utils/typing.js';
+import { uploadMedia, getMediaType } from './src/services/mediaUpload.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCLaGO8p3BKySI6p8GDab7C98SmFQ9BtRY",
@@ -158,33 +159,120 @@ function openChat(otherUid, otherUsername) {
   document.getElementById("sendBtn").onclick = sendMessage;
 }
 
-// SEND MESSAGE
-window.sendMessage = async function () {
-  const input = document.getElementById("msgInput");
-  const text = input.value.trim();
-  if (!text) return;
-  const msg = { sender: auth.currentUser.uid, text, timestamp: Date.now(), status: 'sending' };
+// SEND MESSAGE (with media support)
+window.sendMessage = async function (messageData = null) {
+  let text, file;
+  
+  // Check if called from Composer component or old way
+  if (messageData && typeof messageData === 'object') {
+    text = messageData.text || '';
+    file = messageData.file || null;
+  } else {
+    // Old way - from input field
+    const input = document.getElementById("msgInput");
+    text = input?.value.trim() || '';
+    file = null;
+  }
+  
+  if (!text && !file) return;
+  
   const chatDocRef = doc(db, "chats", window.currentChatId);
+  const timestamp = Date.now();
   
-  // Optimistic UI - add message immediately
-  if (chatWindow && window.currentChatId) {
-    chatWindow.addMessage(msg, true, 'You', true);
-  }
+  // Prepare base message
+  let msg = {
+    sender: auth.currentUser.uid,
+    text,
+    timestamp,
+    status: 'sending'
+  };
   
-  try { 
-    await updateDoc(chatDocRef, { messages: arrayUnion(msg) }); 
-    // Update status to sent
+  try {
+    // If there's a file, upload it first
+    if (file) {
+      // Show uploading state in composer
+      const composerEvent = new CustomEvent('setUploadingState', { detail: { uploading: true } });
+      window.dispatchEvent(composerEvent);
+      
+      // Optimistic UI - add message with loading state
+      if (chatWindow && window.currentChatId) {
+        const tempMsg = { ...msg, text: text || 'Sending media...' };
+        chatWindow.addMessage(tempMsg, true, 'You', true);
+      }
+      
+      // Upload media file
+      await new Promise((resolve, reject) => {
+        uploadMedia(
+          file,
+          auth.currentUser.uid,
+          // Progress callback
+          (progress) => {
+            const progressEvent = new CustomEvent('uploadProgress', { detail: { progress } });
+            window.dispatchEvent(progressEvent);
+          },
+          // Complete callback
+          (mediaData) => {
+            // Add media URL to message based on type
+            if (mediaData.type === 'image') {
+              msg.imageUrl = mediaData.url;
+            } else if (mediaData.type === 'video') {
+              msg.videoUrl = mediaData.url;
+            }
+            msg.mediaType = mediaData.type;
+            msg.mediaSize = mediaData.size;
+            resolve();
+          },
+          // Error callback
+          (error) => {
+            console.error('Upload error:', error);
+            alert('Failed to upload media. Please try again.');
+            reject(error);
+          }
+        );
+      });
+      
+      // Hide uploading state
+      const hideUploadEvent = new CustomEvent('setUploadingState', { detail: { uploading: false } });
+      window.dispatchEvent(hideUploadEvent);
+      const hideProgressEvent = new CustomEvent('hideUploadProgress');
+      window.dispatchEvent(hideProgressEvent);
+    }
+    
+    // Update message status
+    msg.status = 'sent';
+    
+    // Save message to Firestore
+    try {
+      await updateDoc(chatDocRef, { messages: arrayUnion(msg) });
+    } catch (error) {
+      // If chat doesn't exist, create it
+      await setDoc(chatDocRef, { messages: [msg] });
+    }
+    
+    // Update status in UI
     if (chatWindow) {
       chatWindow.updateMessageStatus(msg.timestamp, 'sent');
     }
-  }
-  catch { 
-    await setDoc(chatDocRef, { messages: [msg] }); 
-    if (chatWindow) {
-      chatWindow.updateMessageStatus(msg.timestamp, 'sent');
+    
+    // Clear input if from old input field
+    const input = document.getElementById("msgInput");
+    if (input && !messageData) {
+      input.value = "";
+    }
+  } catch (error) {
+    console.error('Error sending message:', error);
+    
+    // Hide uploading state on error
+    const hideUploadEvent = new CustomEvent('setUploadingState', { detail: { uploading: false } });
+    window.dispatchEvent(hideUploadEvent);
+    const hideProgressEvent = new CustomEvent('hideUploadProgress');
+    window.dispatchEvent(hideProgressEvent);
+    
+    // Show error to user
+    if (file) {
+      alert('Failed to send message with media. Please try again.');
     }
   }
-  input.value = "";
 };
 
 // Initialize components on chat.html page
@@ -200,6 +288,13 @@ if (window.location.pathname.includes('chat.html')) {
     // Listen for settings button click
     window.addEventListener('openSettings', () => {
       settings.show();
+    });
+    
+    // Listen for sendMessage event from ChatWindow/Composer
+    window.addEventListener('sendMessage', (e) => {
+      if (e.detail) {
+        window.sendMessage(e.detail);
+      }
     });
     
     // Track unread count

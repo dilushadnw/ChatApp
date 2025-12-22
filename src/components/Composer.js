@@ -110,6 +110,23 @@ export class Composer {
     fileInput?.addEventListener('change', (e) => this.handleFileSelect(e));
     removeFileBtn?.addEventListener('click', () => this.removeFile());
 
+    // Listen for global upload events
+    window.addEventListener('setUploadingState', (e) => {
+      if (e.detail && typeof e.detail.uploading !== 'undefined') {
+        this.setUploadingState(e.detail.uploading);
+      }
+    });
+
+    window.addEventListener('uploadProgress', (e) => {
+      if (e.detail && typeof e.detail.progress !== 'undefined') {
+        this.updateUploadProgress(e.detail.progress);
+      }
+    });
+
+    window.addEventListener('hideUploadProgress', () => {
+      this.hideUploadProgress();
+    });
+
     // Close emoji picker when clicking outside
     document.addEventListener('click', (e) => {
       const emojiPicker = this.container.querySelector('#emojiPicker');

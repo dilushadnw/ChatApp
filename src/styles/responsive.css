@@ -569,6 +569,7 @@
 
 .composer {
   padding: 1rem 1.2rem;
+  position: relative;
 }
 
 .file-preview {
