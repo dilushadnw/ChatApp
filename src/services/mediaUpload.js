@@ -53,17 +53,18 @@ export function getMediaType(file) {
  * Generate unique filename to prevent collisions and security issues
  */
 function generateUniqueFilename(file, userId) {
-  // Sanitize original filename - remove path traversal characters
-  const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+  // Get file extension safely
+  const parts = file.name.split('.');
+  const extension = parts.length > 1 ? parts[parts.length - 1] : 'bin';
   
-  // Get file extension
-  const extension = sanitizedName.split('.').pop();
+  // Sanitize extension - only allow alphanumeric characters
+  const sanitizedExtension = extension.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
   
   // Generate unique name with timestamp and random string
   const timestamp = Date.now();
   const randomString = Math.random().toString(36).substring(2, 15);
   
-  return `${userId}_${timestamp}_${randomString}.${extension}`;
+  return `${userId}_${timestamp}_${randomString}.${sanitizedExtension}`;
 }
 
 /**

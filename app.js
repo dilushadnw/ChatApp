@@ -246,8 +246,13 @@ window.sendMessage = async function (messageData = null) {
     try {
       await updateDoc(chatDocRef, { messages: arrayUnion(msg) });
     } catch (error) {
-      // If chat doesn't exist, create it
-      await setDoc(chatDocRef, { messages: [msg] });
+      // If chat doesn't exist (not-found error), create it
+      if (error.code === 'not-found') {
+        await setDoc(chatDocRef, { messages: [msg] });
+      } else {
+        // Re-throw other errors (permissions, network, etc.)
+        throw error;
+      }
     }
     
     // Update status in UI
