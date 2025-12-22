@@ -79,7 +79,7 @@ function convertEmojiShortcuts(text) {
 }
 
 /**
- * Validate file type for uploads
+ * Validate file type for uploads (images only - for backward compatibility)
  */
 export function isValidImageType(file) {
   const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
@@ -87,8 +87,33 @@ export function isValidImageType(file) {
 }
 
 /**
- * Validate file size (max 5MB)
+ * Validate video file type
+ */
+export function isValidVideoType(file) {
+  const validTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+  return validTypes.includes(file.type);
+}
+
+/**
+ * Validate media file type (images and videos)
+ * Note: For media upload, use the mediaUpload service's validation instead
+ */
+export function isValidMediaType(file) {
+  return isValidImageType(file) || isValidVideoType(file);
+}
+
+/**
+ * Validate file size (max 5MB for images, 50MB for videos)
  */
 export function isValidFileSize(file, maxSizeMB = 5) {
   return file.size <= maxSizeMB * 1024 * 1024;
+}
+
+/**
+ * Get media type from file
+ */
+export function getMediaType(file) {
+  if (isValidImageType(file)) return 'image';
+  if (isValidVideoType(file)) return 'video';
+  return 'unknown';
 }
