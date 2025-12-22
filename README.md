@@ -10,14 +10,27 @@ A modern, feature-rich chat application built with vanilla JavaScript and Fireba
 - **User Search**: Find and connect with other users
 - **Message History**: Persistent chat history stored in Firestore
 
-### Modern UI/UX
+### Media Sharing (NEW!)
+- **Image Sharing**: Upload and share JPG, PNG, WebP, and GIF images (up to 5MB)
+- **Video Sharing**: Upload and share MP4 and WebM videos (up to 50MB)
+- **Drag & Drop**: Simply drag media files into the chat to upload
+- **Upload Progress**: Real-time upload progress indicator
+- **Media Preview**: Preview images and videos before sending
+- **Full-Screen Viewer**: Click on media to view in full-screen modal
+- **Video Player**: Built-in video player with controls
+- **Lazy Loading**: Optimized media loading for better performance
+- **Mobile Camera Access**: Access camera and gallery on mobile devices
+
+### Modern UI/UX (WhatsApp-Style)
 - **Responsive Design**: Two-column layout on desktop, single-column on mobile
+- **Chat Bubbles**: Sender on right (green), receiver on left (dark purple)
 - **Smooth Animations**: Message fade-in and slide-up effects
 - **Typing Indicators**: See when someone is typing
 - **Message Status**: Visual indicators for sending, sent, delivered, and read
-- **Auto-scroll**: Smart scrolling with pin position option
+- **Timestamps**: Time displayed under each message
+- **Auto-scroll**: Smart scrolling to latest messages
+- **Fixed Input Bar**: Input bar stays at bottom on mobile
 - **Emoji Support**: Built-in emoji picker and shortcode support (e.g., `:smile:`)
-- **Image Sharing**: Send images with preview and full-screen viewing
 
 ### Notifications
 - **Desktop Notifications**: Browser notifications when receiving messages
@@ -29,10 +42,12 @@ A modern, feature-rich chat application built with vanilla JavaScript and Fireba
 
 ### Security & Performance
 - **XSS Prevention**: Content sanitization and HTML escaping
-- **Input Validation**: File type and size validation for uploads
-- **Lazy Loading**: Efficient image loading
+- **File Upload Security**: Secure filename generation and type validation
+- **File Size Limits**: 5MB for images, 50MB for videos
+- **Lazy Loading**: Efficient media loading
 - **Optimistic UI**: Instant message display with async server sync
 - **Rate Limiting**: Built-in debouncing for typing indicators
+- **Upload Deduplication**: Prevents duplicate uploads during slow network
 
 ### Accessibility
 - **ARIA Labels**: Screen reader support
@@ -95,9 +110,40 @@ While the app uses Firebase SDK directly in the browser, you can configure these
 
 1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
 2. Enable Email/Password authentication
-3. Create a Firestore database with these collections:
+3. Enable Firebase Storage
+4. Create a Firestore database with these collections:
    - `users`: Stores user profiles
    - `chats`: Stores conversation messages
+
+#### Firebase Storage Setup
+
+1. Go to Firebase Console > Storage
+2. Click "Get Started"
+3. Choose security rules (start in test mode or use rules below)
+4. Storage bucket will be created at: `YOUR_PROJECT.appspot.com`
+
+#### Firebase Storage Security Rules
+
+```javascript
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Media uploads (images and videos)
+    match /media/{mediaType}/{userId}/{fileName} {
+      // Allow authenticated users to read all media
+      allow read: if request.auth != null;
+      
+      // Allow users to write their own media files
+      allow write: if request.auth != null 
+                   && request.auth.uid == userId
+                   && (mediaType == 'image' || mediaType == 'video');
+      
+      // Validate file size
+      allow write: if request.resource.size < 50 * 1024 * 1024; // 50MB max
+    }
+  }
+}
+```
 
 #### Firestore Security Rules
 
@@ -117,6 +163,48 @@ service cloud.firestore {
   }
 }
 ```
+
+## 📷 Media Sharing
+
+### How to Share Media
+
+#### Desktop
+1. **Click Attach Button**: Click the paperclip icon in the message composer
+2. **Select File**: Choose an image or video from your computer
+3. **Preview**: A preview will appear showing your selected media
+4. **Send**: Type an optional message and click send
+5. **Drag & Drop**: Alternatively, drag files directly into the chat window
+
+#### Mobile
+1. **Click Attach Button**: Tap the paperclip icon
+2. **Choose Source**: Select from camera or gallery
+3. **Select Media**: Take a photo/video or choose from gallery
+4. **Preview & Send**: Review and send your media
+
+### Supported Formats
+
+#### Images
+- **Formats**: JPG, JPEG, PNG, WebP, GIF
+- **Max Size**: 5MB per image
+- **Features**: Lazy loading, click to view full screen
+
+#### Videos
+- **Formats**: MP4, WebM, OGG
+- **Max Size**: 50MB per video
+- **Features**: Built-in player with controls, click to view full screen
+
+### Upload Progress
+
+- Real-time progress bar shows upload status
+- Send button disabled during upload to prevent duplicates
+- Cancel upload by clicking the X on the preview
+
+### Best Practices
+
+- **Compress large files** before uploading for faster sending
+- **Use appropriate formats**: JPG for photos, PNG for graphics, MP4 for videos
+- **Test on mobile** to ensure camera/gallery access works correctly
+- **Monitor storage usage** in Firebase Console
 
 ## 🌐 Browser Notifications
 
@@ -166,7 +254,7 @@ npm run test:watch
 
 ```
 ChatApp/
-├── app.js                      # Main application logic
+├── app.js                      # Main application logic & Firebase integration
 ├── index.html                  # Login page
 ├── register.html               # Registration page
 ├── chat.html                   # Main chat interface
@@ -175,14 +263,15 @@ ChatApp/
 │   ├── components/
 │   │   ├── ConversationList.js # Conversation sidebar
 │   │   ├── ChatWindow.js       # Main chat view
-│   │   ├── MessageBubble.js    # Message component
-│   │   ├── Composer.js         # Message input
+│   │   ├── MessageBubble.js    # Message component (supports images & videos)
+│   │   ├── Composer.js         # Message input with media upload
 │   │   ├── Settings.js         # Settings modal
-│   │   └── ImageModal.js       # Image viewer
+│   │   └── ImageModal.js       # Media viewer (images & videos)
 │   ├── services/
-│   │   └── notifications.js    # Notification service
+│   │   ├── notifications.js    # Notification service
+│   │   └── mediaUpload.js      # Media upload service (NEW)
 │   ├── utils/
-│   │   ├── sanitize.js         # XSS prevention
+│   │   ├── sanitize.js         # XSS prevention & file validation
 │   │   └── typing.js           # Typing indicators
 │   └── styles/
 │       └── responsive.css      # Responsive layout
@@ -312,12 +401,17 @@ For issues and questions:
 
 Future enhancements planned:
 
+- [x] Image sharing with preview ✅
+- [x] Video sharing with player ✅
+- [x] Drag & drop file upload ✅
+- [x] Upload progress indicator ✅
+- [x] WhatsApp-style UI/UX ✅
 - [ ] Voice messages
 - [ ] Video calls
 - [ ] Group chats
 - [ ] Message reactions
 - [ ] Message forwarding
-- [ ] File sharing (documents, videos)
+- [ ] Document sharing (PDF, DOCX, etc.)
 - [ ] Message search
 - [ ] Dark/light theme toggle
 - [ ] Multiple language support
