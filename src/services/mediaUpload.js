@@ -78,7 +78,7 @@ export async function uploadMedia(file, userId, onProgress, onComplete, onError)
   try {
     // Validate file type
     if (!isValidMediaType(file)) {
-      const error = new Error('Invalid file type. Only images (JPG, PNG, WebP, GIF) and videos (MP4, WebM) are allowed.');
+      const error = new Error('Invalid file type. Only images (JPG, PNG, WebP, GIF) and videos (MP4, WebM, OGG) are allowed.');
       if (onError) onError(error);
       return;
     }

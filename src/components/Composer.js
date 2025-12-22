@@ -317,7 +317,7 @@ export class Composer {
 
     // Validate file type (images and videos)
     if (!isValidMediaType(file)) {
-      alert('Please select a valid media file.\nSupported formats:\n• Images: JPG, PNG, WebP, GIF\n• Videos: MP4, WebM');
+      alert('Please select a valid media file.\nSupported formats:\n• Images: JPG, PNG, WebP, GIF\n• Videos: MP4, WebM, OGG');
       return;
     }
 

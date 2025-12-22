@@ -79,7 +79,7 @@ function convertEmojiShortcuts(text) {
 }
 
 /**
- * Validate file type for uploads (images and videos)
+ * Validate file type for uploads (images only - for backward compatibility)
  */
 export function isValidImageType(file) {
   const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
@@ -96,6 +96,7 @@ export function isValidVideoType(file) {
 
 /**
  * Validate media file type (images and videos)
+ * Note: For media upload, use the mediaUpload service's validation instead
  */
 export function isValidMediaType(file) {
   return isValidImageType(file) || isValidVideoType(file);

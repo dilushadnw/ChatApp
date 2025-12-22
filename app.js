@@ -225,7 +225,8 @@ window.sendMessage = async function (messageData = null) {
           // Error callback
           (error) => {
             console.error('Upload error:', error);
-            alert('Failed to upload media. Please try again.');
+            const errorMessage = error.message || 'Failed to upload media. Please try again.';
+            alert(`Upload failed: ${errorMessage}`);
             reject(error);
           }
         );
@@ -268,9 +269,10 @@ window.sendMessage = async function (messageData = null) {
     const hideProgressEvent = new CustomEvent('hideUploadProgress');
     window.dispatchEvent(hideProgressEvent);
     
-    // Show error to user
+    // Show error to user with details
     if (file) {
-      alert('Failed to send message with media. Please try again.');
+      const errorMessage = error.message || 'Unknown error occurred';
+      alert(`Failed to send message with media: ${errorMessage}`);
     }
   }
 };

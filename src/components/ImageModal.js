@@ -83,7 +83,6 @@ export class ImageModal {
       video.src = mediaUrl;
       video.controls = true;
       video.autoplay = false;
-      video.setAttribute('controlsList', 'nodownload');
       mediaContainer.appendChild(video);
     } else {
       // Create image element
